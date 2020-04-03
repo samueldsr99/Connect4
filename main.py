@@ -56,13 +56,14 @@ class App:
 			self.print_screen()
 			pygame.display.update()
 
+			# Agent's Turn
 			if self.curState.turn == 2:
 
 				from time import time
 				initTime = time()
 
 				agent = Agent(self.curState)
-				node = agent.findNextAction(1500)
+				node = agent.findNextAction(1000)
 				action = node.state.lastAction
 				self.curState.applyAction(action)
 
@@ -76,6 +77,7 @@ class App:
 				print("response time:", endTime - initTime)
 				# end statistics
 
+			# Player's Turn
 			for event in pygame.event.get():
 				if event.type == QUIT:
 					self.running = False

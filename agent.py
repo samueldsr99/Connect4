@@ -4,17 +4,18 @@ from state import State
 # Agent that implements Monte Carlo Tree Search
 
 class Agent():
-	def __init__(self, state=State()):
+	def __init__(self, state=State(), actionMethod="random"):
 		import math
 		self.root = Node(state)
 		self.c = math.sqrt(2) # constant c
+		self.actionMethod = actionMethod
 
 	def calculateValue(self, node):
 		import math
 		return node.wins / node.visits + self.c * ( math.log(node.parent.visits) / node.visits )
 
 	def findNextAction(self, iterations):
-		for i in range(iterations):
+		for _ in range(iterations):
 			# 1 selection
 			node = self.findChild(self.root)
 
@@ -47,7 +48,10 @@ class Agent():
 		curState = node.state.copy()
 
 		while not curState.isTerminal():
-			action = curState.getIntelligentAction()
+			if self.actionMethod == "intelligent":
+				action = curState.getIntelligentAction()
+			else:
+				action = curState.getRandomAction()
 			curState.applyAction(action)
 		return curState.whoWin()
 
@@ -65,25 +69,25 @@ class Agent():
 				best = i
 		return best
 
-# debug
-matrix = [
-	[0, 0, 0, 0, 0, 0, 0],
-	[0, 0, 0, 0, 0, 0, 0],
-	[0, 0, 0, 2, 1, 0, 0],
-	[1, 0, 0, 1, 0, 1, 0],
-	[2, 2, 0, 2, 1, 0, 1],
-	[1, 2, 2, 1, 0, 0, 1],
-]
-state = State(matrix=matrix)
+if __name__ == '__main__':
+	# debug
+	matrix = [
+		[0, 0, 2, 0, 2, 0, 1],
+		[0, 0, 1, 0, 1, 0, 2],
+		[1, 2, 2, 0, 1, 1, 2],
+		[2, 1, 1, 1, 2, 1, 1],
+		[2, 1, 1, 2, 2, 1, 2],
+		[2, 1, 1, 2, 1, 2, 2],
+	]
+	state = State(matrix=matrix, lastAction=3, turn=2, FilledCols=3)
 
-print(state.getIntelligentAction())
+	# for i in range(1):
+	# 	agent = Agent(state)
+	# 	agent.findNextAction(5)
 
-#agent = Agent(state)
+	# action = node.state.lastAction
 
-#node = agent.findNextAction(200)
-#action = node.state.lastAction
-
-#for child in agent.root.children:
-#	print("action:", child.state.lastAction, " wins:", child.wins, " visits:", child.visits)
-#print(action)
-#end debug
+	# for child in agent.root.children:
+	# 	print("action:", child.state.lastAction, " wins:", child.wins, " visits:", child.visits)
+	# print(action)
+	#end debug
