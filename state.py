@@ -1,105 +1,105 @@
 from random import choice
 
 # State definition:
-# 6x7 matrix (can be optimized)
+# 6x7 Matrix
 # 	0 - empty space
 # 	1 - player's 1 ball
 # 	2 - player's 2 ball
 # player's turn
-# lastAction: evident
+# LastAction: last action
 # FilledCols: number of cols filled by circles
 
-# action is the col of the matrix to put the circle
+# action is the col of the Matrix to put the circle
 
 class State():
-	def __init__(self, matrix=None, turn=1, lastAction=None, FilledCols=0, AvailableActions=[0,1,2,3,4,5,6]):
-		self.matrix = matrix
+	def __init__(self, matrix=None, turn=1, lastAction=None, filledCols=0, availableActions=[0,1,2,3,4,5,6]):
+		self.Matrix = matrix
 		if matrix == None:
-			self.matrix = []
+			self.Matrix = []
 			for i in range(6):
-				self.matrix.append([])
+				self.Matrix.append([])
 				for j in range(7):
-					self.matrix[-1].append(0)
-		self.turn = turn
-		self.AvailableActions = AvailableActions
-		self.lastAction = lastAction
-		self.FilledCols = FilledCols
+					self.Matrix[-1].append(0)
+		self.Turn = turn
+		self.AvailableActions = availableActions
+		self.LastAction = lastAction
+		self.FilledCols = filledCols
 	
-	def copy(self):
+	def Copy(self):
 		nmatrix = []
 		for i in range(6):
 			nmatrix.append([])
 			for j in range(7):
-				nmatrix[i].append(self.matrix[i][j])
-		return State(matrix=nmatrix, turn=self.turn, lastAction=self.lastAction, FilledCols=self.FilledCols, AvailableActions=self.AvailableActions.copy())
+				nmatrix[i].append(self.Matrix[i][j])
+		return State(matrix=nmatrix, turn=self.Turn, lastAction=self.LastAction, filledCols=self.FilledCols, availableActions=self.AvailableActions.copy())
 
 	# Fast
-	def switchToNextPlayer(self):
-		self.turn = 3 - self.turn
+	def SwitchToNextPlayer(self):
+		self.Turn = 3 - self.Turn
 
-	def applyAction(self, action):
-		self.lastAction = action
+	def ApplyAction(self, action):
+		self.LastAction = action
 
 		for i in range(5, -1, -1):
-			if self.matrix[i][action] == 0:
+			if self.Matrix[i][action] == 0:
 				if i == 0:
 					self.FilledCols += 1
 					self.AvailableActions.remove(action)
-				self.matrix[i][action] = self.turn
-				self.switchToNextPlayer()
+				self.Matrix[i][action] = self.Turn
+				self.SwitchToNextPlayer()
 				break
 
 	# Who Win based on the last action
-	def whoWin(self):
-		if self.lastAction == None:
+	def WhoWin(self):
+		if self.LastAction == None:
 			return 0
 		
-		pWinner = self.nextPlayerTurn(self.turn)
+		pWinner = State.NextPlayerTurn(self.Turn)
 		# Vertical
 		p = 0
-		col = self.lastAction
+		col = self.LastAction
 		row = 0
 		for i in range(5, -1, -1):
-			p = p + 1 if self.matrix[i][col] == pWinner else 0
+			p = p + 1 if self.Matrix[i][col] == pWinner else 0
 			
 			if p == 4:
 				return pWinner
 
-			if self.matrix[i][col] == 0 and row == 0:
+			if self.Matrix[i][col] == 0 and row == 0:
 				row = i + 1
 
 		# Horizontal
 		left, right = col, col
-		while left - 1 >= 0 and self.matrix[row][left - 1] == pWinner:
+		while left - 1 >= 0 and self.Matrix[row][left - 1] == pWinner:
 			left -= 1
 			if right - left + 1 == 4:
 				return pWinner
 		
-		while right + 1 < 7 and self.matrix[row][right + 1] == pWinner:
+		while right + 1 < 7 and self.Matrix[row][right + 1] == pWinner:
 			right += 1
 			if right - left + 1 == 4:
 				return pWinner
 		
 		# Diagonal 1
 		left, right = [row, col], [row, col]
-		while self.IN(left[0] - 1, left[1] - 1) and self.matrix[left[0] - 1][left[1] - 1] == pWinner:
+		while self.In(left[0] - 1, left[1] - 1) and self.Matrix[left[0] - 1][left[1] - 1] == pWinner:
 			left[0] -= 1; left[1] -= 1
 			if right[1] - left[1] + 1 == 4:
 				return pWinner
 		
-		while self.IN(right[0] + 1, right[1] + 1) and self.matrix[right[0] + 1][right[1] + 1] == pWinner:
+		while self.In(right[0] + 1, right[1] + 1) and self.Matrix[right[0] + 1][right[1] + 1] == pWinner:
 			right[0] += 1; right[1] += 1
 			if right[1] - left[1] + 1 == 4:
 				return pWinner
 
 		# Diagonal 2
 		left, right = [row, col], [row, col]
-		while self.IN(left[0] + 1, left[1] - 1) and self.matrix[left[0] + 1][left[1] - 1] == pWinner:
+		while self.In(left[0] + 1, left[1] - 1) and self.Matrix[left[0] + 1][left[1] - 1] == pWinner:
 			left[0] += 1; left[1] -= 1
 			if right[1] - left[1] + 1 == 4:
 				return pWinner
 		
-		while self.IN(right[0] - 1, right[1] + 1) and self.matrix[right[0] - 1][right[1] + 1] == pWinner:
+		while self.In(right[0] - 1, right[1] + 1) and self.Matrix[right[0] - 1][right[1] + 1] == pWinner:
 			right[0] -= 1; right[1] += 1
 			if right[1] - left[1] + 1 == 4:
 				return pWinner
@@ -107,34 +107,35 @@ class State():
 		# Tie
 		return 0
 
-	def isTerminal(self):
-		return self.whoWin() != 0 or self.isFilled(self.matrix)
+	def IsTerminal(self):
+		return self.WhoWin() != 0 or self.IsFilled(self.Matrix)
 
-	def getRandomAction(self):
+	def GetRandomAction(self):
 		action = choice(self.AvailableActions)
 		return action
 
-	def getIntelligentAction(self):
+	def GetIntelligentAction(self):
 		for i in range(7):
-			state = self.copy()
-			if state.validMove(i):
-				state.applyAction(i)
-				if state.whoWin() == self.turn:
+			state = self.Copy()
+			if self.ValidMove(i):
+				state.ApplyAction(i)
+				if state.WhoWin() == self.Turn:
 					return i
-		return self.getRandomAction()
+		return self.GetRandomAction()
 
 	# Fast
-	def validMove(self, action):
-		return self.matrix[0][action] == 0
+	def IsFilled(self, Matrix):
+		return self.FilledCols == 7
+	# Fast
+	def ValidMove(self, action):
+		return self.Matrix[0][action] == 0
 
 	# Fast
-	def nextPlayerTurn(self, turn):
+	@staticmethod
+	def NextPlayerTurn(turn):
 		return 3 - turn
 
 	# Fast
-	def IN(self, row, col):
+	@staticmethod
+	def In(row, col):
 		return row >= 0 and row < 6 and col >= 0 and col < 7
-
-	# Fast
-	def isFilled(self, matrix):
-		return self.FilledCols == 7
