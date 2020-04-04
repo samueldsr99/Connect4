@@ -20,7 +20,7 @@ class Agent():
 			node = self.findChild(self.root)
 
 			# 2 expansion
-			if not node.state.isTerminal() and not node.isFullyExpanded:
+			if not node.state.IsTerminal() and not node.IsFullyExpanded:
 				node = node.expand()
 
 			# 3 playout
@@ -33,7 +33,7 @@ class Agent():
 
 
 	def findChild(self, node):
-		while not node.state.isTerminal() and node.isFullyExpanded:
+		while not node.state.IsTerminal() and node.IsFullyExpanded:
 			node = self.findBestChild(node)
 		return node
 
@@ -45,19 +45,19 @@ class Agent():
 		return best
 
 	def playout(self, node):
-		curState = node.state.copy()
+		curState = node.state.Copy()
 
-		while not curState.isTerminal():
+		while not curState.IsTerminal():
 			if self.actionMethod == "intelligent":
-				action = curState.getIntelligentAction()
+				action = curState.GetIntelligentAction()
 			else:
-				action = curState.getRandomAction()
-			curState.applyAction(action)
-		return curState.whoWin()
+				action = curState.GetRandomAction()
+			curState.ApplyAction(action)
+		return curState.WhoWin()
 
 	def backpropagate(self, node, result):
 		while node != None:
-			if node.state.turn != result:
+			if node.state.Turn != result:
 				node.wins += 1
 			node.visits += 1
 			node = node.parent
@@ -80,14 +80,3 @@ if __name__ == '__main__':
 		[2, 1, 1, 2, 1, 2, 2],
 	]
 	state = State(matrix=matrix, lastAction=3, turn=2, FilledCols=3)
-
-	# for i in range(1):
-	# 	agent = Agent(state)
-	# 	agent.findNextAction(5)
-
-	# action = node.state.lastAction
-
-	# for child in agent.root.children:
-	# 	print("action:", child.state.lastAction, " wins:", child.wins, " visits:", child.visits)
-	# print(action)
-	#end debug

@@ -2,6 +2,8 @@ import pygame
 from pygame.locals import *
 from state import State
 from agent import Agent
+from time import time
+from logs import Log
 
 class App:
 	def __init__(self):
@@ -35,47 +37,44 @@ class App:
 	def print_screen(self):
 		self.screen.fill(self.bgcolor)
 
-
 		for i in range(len(self.circle)):
 			for j in range(len(self.circle[i])):
 				color = (100, 100, 100)
-				if self.curState.matrix[i][j] == 1:
+				if self.curState.Matrix[i][j] == 1:
 					color = (255, 0, 0)
-				if self.curState.matrix[i][j] == 2:
+				if self.curState.Matrix[i][j] == 2:
 					color = (0, 0, 255)
 				pygame.draw.circle(self.screen, color, (self.circle[i][j][0], self.circle[i][j][1]), 20, 20)
 
 
-	def run(self):
-		it = 0
+	def run(self, verbose=False, iterations=3000):
+		logs = Log()
+		logs.log("Iterations: " + str(iterations))
+		logs.log("Action Method: random")
+
 		pygame.time.delay(100)
 
 		self.print_screen()
-		while self.running and not self.curState.isTerminal():
+		while self.running and not self.curState.IsTerminal():
 
 			self.print_screen()
 			pygame.display.update()
 
 			# Agent's Turn
-			if self.curState.turn == 2:
-
-				from time import time
+			if self.curState.Turn == 2:
+				
 				initTime = time()
 
-				agent = Agent(self.curState)
-				node = agent.findNextAction(1000)
-				action = node.state.lastAction
-				self.curState.applyAction(action)
+				agent = Agent(self.curState, actionMethod="random")
+				node = agent.findNextAction(3000)
+				action = node.state.LastAction
+				self.curState.ApplyAction(action)
 
-				# statistics
-				it += 1
-				print("move #:", it, " turn:", self.curState.turn)
-				for child in agent.root.children:
-					print("action:", child.state.lastAction, " wins:", child.wins, " visits:", child.visits)
-				print("move chosen:", action, "wins:", node.wins, "simulations:", node.visits, "win rate:", node.wins / node.visits)
 				endTime = time()
-				print("response time:", endTime - initTime)
-				# end statistics
+
+				logs.RegisterLastAction(State.NextPlayerTurn(self.curState.Turn), action, node.wins, node.visits, endTime-initTime)
+				if verbose:
+					print(logs.LastActionStatistics())
 
 			# Player's Turn
 			for event in pygame.event.get():
@@ -84,18 +83,27 @@ class App:
 
 				if event.type == MOUSEBUTTONDOWN:
 					x = event.pos[0]
-					if self.curState.turn == 1:
+					if self.curState.Turn == 1:
 						for i in range(7):
 							if self.circle[0][i][0] - 20 <= x and x <= self.circle[0][i][0] + 20:
-								if self.curState.validMove(i):
-									it += 1
-									print("move #:", it, " turn:", self.curState.turn)
-									print(i)
-									self.curState.applyAction(i)
+								if self.curState.ValidMove(i):
+									self.curState.ApplyAction(i)
+									logs.RegisterLastAction(State.NextPlayerTurn(self.curState.Turn), i, 0, 0, 0)
 		self.print_screen()
 		pygame.display.update()
-		print("winner: ", self.curState.whoWin())
-		
+		winner = self.curState.WhoWin()
+
+		if verbose:
+			print("winner: ", winner)
+		logs.log("Winner: " + str(winner))
+
+		font = pygame.font.Font(None, 48)
+		text = font.render("Winner: " + str(winner), False, (0, 0, 0))
+		self.screen.blit(text, (20, 20))
+		pygame.display.update()
+
+		logs.SaveData()
+
 		ed = False
 
 		while True:
@@ -109,8 +117,4 @@ class App:
 
 app = App()
 
-app.run()
-
-#funciona bien, pero queda optimizarlo para aumentar las iteraciones.
-#es posible vencerle si se juega de 1ro, no le he vencido jugando de 2do.
-#para los cambios futuros es recomendable hacer una copia de esta version, pues es bastante estable
+app.run(verbose=False, iterations=5000)
