@@ -1,4 +1,6 @@
 from datetime import datetime
+import os
+
 """
     Functions & classes to log game data & print stadistics
 """
@@ -51,6 +53,9 @@ class Log:
         now = datetime.now()
         
         filename = "snapshot_from_" + "_".join([str(now.year), str(now.month), str(now.day), str(now.hour), str(now.minute), str(now.second)])
+
+        if not "history" in os.listdir():
+            os.mkdir("history")
         
         out = open("history/" + filename + ".hst", "w")
 
